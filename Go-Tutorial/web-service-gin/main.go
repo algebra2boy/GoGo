@@ -1,6 +1,6 @@
 package main
 
-// use "go get ." to install all dependecies
+// use "go get ." to install all dependencies
 import (
 	"net/http"
 
