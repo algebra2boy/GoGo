@@ -1,7 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"encoding/csv"
+	"log"
+	"os"
 
 	"github.com/gocolly/colly"
 )
@@ -19,17 +21,15 @@ type PokemonProduct struct {
 }
 
 func main() {
-	fmt.Println("HELLO")
 
 	var pokemonProducts []PokemonProduct
 
 	c := colly.NewCollector()
 
-	c.Visit("https://scrapeme.live/shop/")
-
 	//  Note that the e parameter of the callback function represents a single li.product HTMLElement
 	// target li HTML element has the .product class
 	c.OnHTML("li.product", func(e *colly.HTMLElement) {
+
 		pokemonProduct := PokemonProduct{}
 
 		// get the href attribute of the a element
@@ -46,6 +46,37 @@ func main() {
 
 		pokemonProducts = append(pokemonProducts, pokemonProduct)
 
-		fmt.Println(pokemonProduct)
 	})
+
+	c.Visit("https://scrapeme.live/shop/")
+
+	// opening the csv file
+	file, err := os.Create("pokemon.csv")
+
+	if err != nil {
+		log.Fatalln("Failed to open file", err)
+	}
+	defer file.Close() // Close closes the File, rendering it unusable for I/O
+
+	// initializing a file writter
+	writer := csv.NewWriter(file)
+
+	// defining the CSV headers
+	headers := []string{"url", "image", "name", "price"}
+
+	// writting the colume headers
+	writer.Write(headers)
+
+	for _, pokemonProduct := range pokemonProducts {
+		record := []string{
+			pokemonProduct.url,
+			pokemonProduct.image,
+			pokemonProduct.name,
+			pokemonProduct.price,
+		}
+
+		writer.Write(record)
+	}
+	defer writer.Flush() // Flush writes any buffered data to the underlying io.Writer.
+
 }
